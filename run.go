@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/status-im/status-go/eth-node/types"
 	"github.com/waku-org/go-waku/waku/v2/protocol/store"
+	"github.com/waku-org/go-waku/waku/v2/timesource"
 	"github.com/waku-org/go-waku/waku/v2/utils"
 )
 
@@ -64,15 +67,12 @@ func main() {
 		panic(err)
 	}
 
-	s1 := store.NewWakuStore(host1, nil, nil, utils.Logger())
+	s1 := store.NewWakuStore(host1, nil, nil, timesource.NewDefaultClock(), utils.Logger())
 	s1.Start(ctx)
 	defer s1.Stop()
 
 	for i, n := range nodeList {
 		queryNode(ctx, n, host1, contentTopic, s1, "first", i)
-		queryNode(ctx, n, host1, contentTopic, s1, "second", i)
-		queryNode(ctx, n, host1, contentTopic, s1, "third", i)
-
 	}
 }
 
@@ -81,6 +81,9 @@ func queryNode(ctx context.Context, node string, host1 host.Host, contentTopic s
 	if err != nil {
 		panic(err)
 	}
+
+	hash1, _ := hex.DecodeString("305b9f88bc8f670b57d895b06296a50eef8b69f1576bce7313d61c3fd4adf677")
+	hash2, _ := hex.DecodeString("5336a19ad110eb5efaa39c180881529da490e3cc12b6f634d00a4105ed57da21")
 
 	info, err := peer.AddrInfoFromP2pAddr(p)
 	if err != nil {
@@ -97,10 +100,9 @@ func queryNode(ctx context.Context, node string, host1 host.Host, contentTopic s
 	cursorIterations := 0
 
 	result, err := s1.Query(ctx, store.Query{
-		Topic:         "/waku/2/default-waku/proto",
-		ContentTopics: []string{contentTopic},
-		StartTime:     int64(1668613188 * time.Second),
-		EndTime:       int64(1668696055 * time.Second),
+		Topic:     "/waku/2/default-waku/proto",
+		StartTime: int64(1671058980 * time.Second),
+		EndTime:   int64((1671058980 + 120) * time.Second),
 	}, store.WithPeer(info.ID), store.WithPaging(false, 100), store.WithRequestId([]byte{1, 2, 3, 4, 5, 6, 7, 8, byte(i)}))
 	if err != nil {
 		fmt.Printf("Could not query %s: %s", info.ID, err.Error())
@@ -115,11 +117,18 @@ func queryNode(ctx context.Context, node string, host1 host.Host, contentTopic s
 			break
 		}
 
+		for _, r := range result.Messages {
+			h, _, _ := r.Hash()
+			if bytes.Equal(h, hash1) || bytes.Equal(h, hash2) {
+				fmt.Println("FOUND IN", node)
+				break
+			}
+		}
+
 		result, err = s1.Next(ctx, result)
 		if err != nil {
 			fmt.Printf("Could not retrieve more results from %s: %s", info.ID, err.Error())
 		}
 	}
 
-	fmt.Printf(">>>> %d messages found in %s in the %s attempt (Used cursor %d times)\n", cnt, info.ID, attempt, cursorIterations)
 }
