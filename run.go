@@ -84,6 +84,7 @@ func queryNode(ctx context.Context, node string, host1 host.Host, contentTopic s
 
 	hash1, _ := hex.DecodeString("305b9f88bc8f670b57d895b06296a50eef8b69f1576bce7313d61c3fd4adf677")
 	hash2, _ := hex.DecodeString("5336a19ad110eb5efaa39c180881529da490e3cc12b6f634d00a4105ed57da21")
+	hash3, _ := hex.DecodeString("7554ffbeb8ec0373b165013708214ebda8103c9ff3d1bd676e0c1cd9b1a9571e")
 
 	info, err := peer.AddrInfoFromP2pAddr(p)
 	if err != nil {
@@ -113,16 +114,19 @@ func queryNode(ctx context.Context, node string, host1 host.Host, contentTopic s
 		cnt += len(result.Messages)
 		cursorIterations += 1
 
-		if result.IsComplete() {
-			break
-		}
+		fmt.Println("Cursor has: ", len(result.Messages))
 
 		for _, r := range result.Messages {
 			h, _, _ := r.Hash()
-			if bytes.Equal(h, hash1) || bytes.Equal(h, hash2) {
+			//fmt.Println(h, hash1, hash2, hash3)
+			if bytes.Equal(h, hash1) || bytes.Equal(h, hash2) || bytes.Equal(h, hash3) {
 				fmt.Println("FOUND IN", node)
 				break
 			}
+		}
+
+		if result.IsComplete() {
+			break
 		}
 
 		result, err = s1.Next(ctx, result)
