@@ -96,14 +96,14 @@ func queryNode(ctx context.Context, node string, host1 host.Host, s1 *store.Waku
 		panic(err)
 	}
 
+	fmt.Println("> Querying ", node)
+
 	messagesToLookFor := []string{
-		"0x305b9f88bc8f670b57d895b06296a50eef8b69f1576bce7313d61c3fd4adf677",
-		"0x5336a19ad110eb5efaa39c180881529da490e3cc12b6f634d00a4105ed57da21",
-		"0x7554ffbeb8ec0373b165013708214ebda8103c9ff3d1bd676e0c1cd9b1a9571e",
+		"0x132599d05f9cffa8e1a9b3f2dfd08e65309892563c1f236e286cc884f7cd0da8",
 	}
 
-	startDate := 1671058980
-	endDate := 1671058980 + 120
+	startDate := 1671224406 - int64(2*3600) // 2hr earlier
+	endDate := 1671224406 + int64(2*3600)   // 2hr after
 
 	messageExists, err := buildComparerFN(messagesToLookFor)
 	if err != nil {
@@ -126,8 +126,8 @@ func queryNode(ctx context.Context, node string, host1 host.Host, s1 *store.Waku
 
 	result, err := s1.Query(ctx, store.Query{
 		Topic:     "/waku/2/default-waku/proto",
-		StartTime: int64(time.Duration(startDate) * time.Second),
-		EndTime:   int64((time.Duration(endDate) * time.Second)),
+		StartTime: startDate * int64(time.Second),
+		EndTime:   endDate * int64(time.Second),
 	}, store.WithPeer(info.ID), store.WithPaging(false, 100), store.WithRequestId([]byte{1, 2, 3, 4, 5, 6, 7, 8, byte(i)}))
 	if err != nil {
 		fmt.Printf("Could not query %s: %s", info.ID, err.Error())
@@ -141,9 +141,13 @@ func queryNode(ctx context.Context, node string, host1 host.Host, s1 *store.Waku
 		for _, r := range result.Messages {
 			h, _, _ := r.Hash()
 			if messageExists(h) {
-				fmt.Println("Message found in", node)
+				fmt.Println("!!!!!!!!!!!!!! Message FOUND in", node)
 				return
 			}
+		}
+
+		if len(result.Messages) > 0 {
+			fmt.Println("Iteration", cursorIterations, "Currently at", time.Unix(0, result.Messages[len(result.Messages)-1].Timestamp), len(result.Messages), "messages retrieved")
 		}
 
 		if result.IsComplete() {

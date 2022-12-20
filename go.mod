@@ -7,7 +7,7 @@ require (
 	github.com/libp2p/go-libp2p v0.23.2
 	github.com/multiformats/go-multiaddr v0.7.0
 	github.com/status-im/status-go/eth-node v1.1.0
-	github.com/waku-org/go-waku v0.2.3-test.0.20221214174409-f1fd8b354e8b
+	github.com/waku-org/go-waku v0.2.3-test.0.20221219232844-2c6d5cd7bdb2
 )
 
 require (

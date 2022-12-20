@@ -1371,6 +1371,8 @@ github.com/waku-org/go-waku v0.2.3-test.0.20221209182808-d64c4aedc425 h1:2sQu7Pt
 github.com/waku-org/go-waku v0.2.3-test.0.20221209182808-d64c4aedc425/go.mod h1:MzmxeUFKOSGqI+3ditwJVmiDXtWW7p4vZhmFeAcwKyI=
 github.com/waku-org/go-waku v0.2.3-test.0.20221214174409-f1fd8b354e8b h1:nCqeKE6N9TmkhdyVjoq+1dpxOelXHBUilTVB8pat9ZI=
 github.com/waku-org/go-waku v0.2.3-test.0.20221214174409-f1fd8b354e8b/go.mod h1:/zvNHBJCSIw67oFdI8aLUPbeE6jGff6PK4ztx6Avct4=
+github.com/waku-org/go-waku v0.2.3-test.0.20221219232844-2c6d5cd7bdb2 h1:lK2458FzFskWJrw/OHpLe7iqy38Xd8xPCElGlwu7ayY=
+github.com/waku-org/go-waku v0.2.3-test.0.20221219232844-2c6d5cd7bdb2/go.mod h1:/zvNHBJCSIw67oFdI8aLUPbeE6jGff6PK4ztx6Avct4=
 github.com/wealdtech/go-ens/v3 v3.0.9/go.mod h1:P2OEBvgkhXLrPzPN+eR5z2/wFIGwHyijTDvpuC1xLlo=
 github.com/wealdtech/go-multicodec v1.2.0/go.mod h1:aedGMaTeYkIqi/KCPre1ho5rTb3hGpu/snBOS3GQLw4=
 github.com/wealdtech/go-string2eth v1.0.0/go.mod h1:UZA/snEybGcD6n+Pl+yoDjmexlEJ6dtoS9myfM83Ol4=
