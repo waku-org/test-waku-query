@@ -1,3 +1,3 @@
 ```
-go run run.go
+make
 ```
