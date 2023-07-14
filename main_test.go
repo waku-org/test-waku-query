@@ -43,7 +43,8 @@ func (s *StoreSuite) TestBasic() {
 	// ================================================================
 	startTime := s.node.Timesource().Now()
 
-	err := sendMessages(ctx, s.node, numMsgToSend, pubsubTopic, contentTopic)
+	// err := sendMessages(  to send the msgs sequentially
+	err := sendMessagesConcurrent(ctx, s.node, numMsgToSend, pubsubTopic, contentTopic)
 	require.NoError(s.T(), err)
 
 	endTime := s.node.Timesource().Now()

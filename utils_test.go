@@ -37,7 +37,7 @@ func sendMessages(ctx context.Context, node *node.WakuNode, numMsgToSend int, to
 		payload := make([]byte, 128)
 		_, err := rand.Read(payload)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		msg := &pb.WakuMessage{
@@ -49,11 +49,40 @@ func sendMessages(ctx context.Context, node *node.WakuNode, numMsgToSend int, to
 
 		_, err = node.Relay().Publish(ctx, msg)
 		if err != nil {
-			return err
+			panic(err)
 		}
-
 		time.Sleep(10 * time.Millisecond)
 	}
+	return nil
+}
+
+func sendMessagesConcurrent(ctx context.Context, node *node.WakuNode, numMsgToSend int, topic string, contentTopic string) error {
+	wg := sync.WaitGroup{}
+	for i := 0; i < numMsgToSend; i++ {
+		wg.Add(1)
+		go func() {
+			wg.Done()
+			payload := make([]byte, 128)
+			_, err := rand.Read(payload)
+			if err != nil {
+				panic(err)
+			}
+
+			msg := &pb.WakuMessage{
+				Payload:      payload,
+				Version:      0,
+				ContentTopic: contentTopic,
+				Timestamp:    node.Timesource().Now().UnixNano(),
+			}
+
+			_, err = node.Relay().Publish(ctx, msg)
+			if err != nil {
+				panic(err)
+			}
+		}()
+		time.Sleep(10 * time.Millisecond)
+	}
+	wg.Wait()
 	return nil
 }
 
@@ -82,7 +111,6 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 	}
 
 	for {
-		cursorIterations += 1
 		hasNext, err := result.Next(ctx)
 		if err != nil {
 			return -1, err
@@ -91,6 +119,7 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 		if !hasNext { // No more messages available
 			break
 		}
+		cursorIterations += 1
 
 		cnt += len(result.GetMessages())
 	}
