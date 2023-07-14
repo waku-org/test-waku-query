@@ -17,23 +17,28 @@ func TestStoreSuite(t *testing.T) {
 
 type StoreSuite struct {
 	suite.Suite
-	node *node.WakuNode
+	nodes []*node.WakuNode
 }
 
 func (s *StoreSuite) SetupSuite() {
-	wakuNode, err := node.New(
-		node.WithNTP(),
-		node.WithWakuRelayAndMinPeers(1),
-	)
+	for i := 0; i < 5; i++ {
+		wakuNode, err := node.New(
+			node.WithNTP(),
+			node.WithWakuRelayAndMinPeers(1),
+		)
 
-	s.NoError(err)
+		s.NoError(err)
 
-	err = wakuNode.Start(context.Background())
-	s.NoError(err)
+		err = wakuNode.Start(context.Background())
+		s.NoError(err)
 
-	s.node = wakuNode
+		s.nodes = append(s.nodes, wakuNode)
+	}
 }
 
 func (s *StoreSuite) TearDownSuite() {
-	s.node.Stop()
+	for _, x := range s.nodes {
+		x.Stop()
+	}
+
 }
