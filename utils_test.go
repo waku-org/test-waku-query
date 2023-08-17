@@ -86,7 +86,7 @@ func sendMessagesConcurrent(ctx context.Context, node *node.WakuNode, numMsgToSe
 	return nil
 }
 
-func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopic string, contentTopic string, startTime time.Time, endTime time.Time) (int, error) {
+func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopic string, contentTopics []string, startTime time.Time, endTime time.Time) (int, error) {
 	p, err := multiaddr.NewMultiaddr(addr)
 	if err != nil {
 		return -1, err
@@ -102,7 +102,7 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 
 	result, err := node.Store().Query(ctx, store.Query{
 		Topic:         pubsubTopic,
-		ContentTopics: []string{contentTopic},
+		ContentTopics: contentTopics,
 		StartTime:     startTime.UnixNano(),
 		EndTime:       endTime.UnixNano(),
 	}, store.WithPeer(info.ID), store.WithPaging(false, 100), store.WithRequestId([]byte{1, 2, 3, 4, 5, 6, 7, 8}))

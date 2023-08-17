@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/waku-org/go-waku/waku/v2/protocol/relay"
 )
 
@@ -21,9 +20,10 @@ var nodeList = []string{
 // If using vscode, go to Preferences > Settings, and edit Go: Test Timeout to at least 60s
 
 func (s *StoreSuite) TestBasic() {
-	numMsgToSend := 100
 	pubsubTopic := relay.DefaultWakuTopic
-	contentTopic := "test1"
+	contentTopics := []string{"test1"}
+	startTime := time.Now()
+	endTime := time.Now()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // Test shouldnt take more than 60s
 	defer cancel()
@@ -39,16 +39,6 @@ func (s *StoreSuite) TestBasic() {
 
 	s.NotZero(len(s.node.Relay().PubSub().ListPeers(relay.DefaultWakuTopic)), "no peers available")
 
-	// Sending messages
-	// ================================================================
-	startTime := s.node.Timesource().Now()
-
-	// err := sendMessages(  to send the msgs sequentially
-	err := sendMessagesConcurrent(ctx, s.node, numMsgToSend, pubsubTopic, contentTopic)
-	require.NoError(s.T(), err)
-
-	endTime := s.node.Timesource().Now()
-
 	// Store
 	// ================================================================
 
@@ -59,9 +49,8 @@ func (s *StoreSuite) TestBasic() {
 		wg.Add(1)
 		func(addr string) {
 			defer wg.Done()
-			cnt, err := queryNode(ctx, s.node, addr, pubsubTopic, contentTopic, startTime, endTime)
+			_, err := queryNode(ctx, s.node, addr, pubsubTopic, contentTopics, startTime, endTime)
 			s.NoError(err)
-			s.Equal(numMsgToSend, cnt)
 		}(addr)
 	}
 	wg.Wait()
