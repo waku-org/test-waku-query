@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/waku-org/go-waku/waku/v2/protocol/relay"
 )
 
@@ -21,47 +21,31 @@ var nodeList = []string{
 // If using vscode, go to Preferences > Settings, and edit Go: Test Timeout to at least 60s
 
 func (s *StoreSuite) TestBasic() {
-	numMsgToSend := 100
+	// TODO: search criteria
 	pubsubTopic := relay.DefaultWakuTopic
-	contentTopic := "test1"
+	contentTopics := []string{"test1"}
+	envelopeHash := "0x" // Use "0x" to find all messages that match the pubsub topic, content topic and start/end time
+	startTime := time.Now().Add(-20 * time.Second)
+	endTime := time.Now()
+
+	// =========================================================
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // Test shouldnt take more than 60s
 	defer cancel()
 
-	// Connecting to nodes
-	// ================================================================
-
-	log.Info("Connecting to nodes...")
-
-	connectToNodes(ctx, s.node)
-
-	time.Sleep(2 * time.Second) // Required so Identify protocol is executed
-
-	s.NotZero(len(s.node.Relay().PubSub().ListPeers(relay.DefaultWakuTopic)), "no peers available")
-
-	// Sending messages
-	// ================================================================
-	startTime := s.node.Timesource().Now()
-
-	// err := sendMessages(  to send the msgs sequentially
-	err := sendMessagesConcurrent(ctx, s.node, numMsgToSend, pubsubTopic, contentTopic)
-	require.NoError(s.T(), err)
-
-	endTime := s.node.Timesource().Now()
-
-	// Store
-	// ================================================================
-
-	time.Sleep(5 * time.Second) // Adding a delay to guarantee that messages are inserted (needed with sqlite)
+	addNodes(ctx, s.node)
+	hash, err := hexutil.Decode(envelopeHash)
+	if err != nil {
+		panic("invalid envelope hash id")
+	}
 
 	wg := sync.WaitGroup{}
 	for _, addr := range nodeList {
 		wg.Add(1)
 		func(addr string) {
 			defer wg.Done()
-			cnt, err := queryNode(ctx, s.node, addr, pubsubTopic, contentTopic, startTime, endTime)
+			_, err := queryNode(ctx, s.node, addr, pubsubTopic, contentTopics, startTime, endTime, hash)
 			s.NoError(err)
-			s.Equal(numMsgToSend, cnt)
 		}(addr)
 	}
 	wg.Wait()

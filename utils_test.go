@@ -1,92 +1,37 @@
 package main
 
 import (
+	"bytes"
 	"context"
-	"crypto/rand"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/multiformats/go-multiaddr"
+	"github.com/waku-org/go-waku/logging"
 	"github.com/waku-org/go-waku/waku/v2/node"
-	"github.com/waku-org/go-waku/waku/v2/protocol/pb"
+	"github.com/waku-org/go-waku/waku/v2/peers"
 	"github.com/waku-org/go-waku/waku/v2/protocol/store"
 	"go.uber.org/zap"
 )
 
-func connectToNodes(ctx context.Context, node *node.WakuNode) {
-	wg := sync.WaitGroup{}
+func addNodes(ctx context.Context, node *node.WakuNode) {
 	for _, addr := range nodeList {
-		wg.Add(1)
-		go func(addr string) {
-			wg.Done()
-			ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-			defer cancel()
-			err := node.DialPeer(ctx, addr)
-			if err != nil {
-				log.Error("could not connect to peer", zap.String("addr", addr), zap.Error(err))
-			}
-		}(addr)
-	}
-	wg.Wait()
-}
-
-func sendMessages(ctx context.Context, node *node.WakuNode, numMsgToSend int, topic string, contentTopic string) error {
-	for i := 0; i < numMsgToSend; i++ {
-		payload := make([]byte, 128)
-		_, err := rand.Read(payload)
+		ma, err := multiaddr.NewMultiaddr(addr)
 		if err != nil {
-			panic(err)
+			log.Error("invalid multiaddress", zap.Error(err), zap.String("addr", addr))
+			continue
 		}
 
-		msg := &pb.WakuMessage{
-			Payload:      payload,
-			Version:      0,
-			ContentTopic: contentTopic,
-			Timestamp:    node.Timesource().Now().UnixNano(),
-		}
-
-		_, err = node.Relay().Publish(ctx, msg)
+		_, err = node.AddPeer(ma, peers.Static, store.StoreID_v20beta4)
 		if err != nil {
-			panic(err)
+			log.Error("could not add peer", zap.Error(err), zap.Stringer("addr", ma))
+			continue
 		}
-		time.Sleep(10 * time.Millisecond)
 	}
-	return nil
 }
 
-func sendMessagesConcurrent(ctx context.Context, node *node.WakuNode, numMsgToSend int, topic string, contentTopic string) error {
-	wg := sync.WaitGroup{}
-	for i := 0; i < numMsgToSend; i++ {
-		wg.Add(1)
-		go func() {
-			wg.Done()
-			payload := make([]byte, 128)
-			_, err := rand.Read(payload)
-			if err != nil {
-				panic(err)
-			}
-
-			msg := &pb.WakuMessage{
-				Payload:      payload,
-				Version:      0,
-				ContentTopic: contentTopic,
-				Timestamp:    node.Timesource().Now().UnixNano(),
-			}
-
-			_, err = node.Relay().Publish(ctx, msg)
-			if err != nil {
-				panic(err)
-			}
-		}()
-		time.Sleep(10 * time.Millisecond)
-	}
-	wg.Wait()
-	return nil
-}
-
-func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopic string, contentTopic string, startTime time.Time, endTime time.Time) (int, error) {
+func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopic string, contentTopics []string, startTime time.Time, endTime time.Time, envelopeHash []byte) (int, error) {
 	p, err := multiaddr.NewMultiaddr(addr)
 	if err != nil {
 		return -1, err
@@ -102,7 +47,7 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 
 	result, err := node.Store().Query(ctx, store.Query{
 		Topic:         pubsubTopic,
-		ContentTopics: []string{contentTopic},
+		ContentTopics: contentTopics,
 		StartTime:     startTime.UnixNano(),
 		EndTime:       endTime.UnixNano(),
 	}, store.WithPeer(info.ID), store.WithPaging(false, 100), store.WithRequestId([]byte{1, 2, 3, 4, 5, 6, 7, 8}))
@@ -120,6 +65,14 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 			break
 		}
 		cursorIterations += 1
+
+		// uncomment to find message by ID
+		for _, m := range result.GetMessages() {
+			if len(envelopeHash) != 0 && bytes.Equal(m.Hash(pubsubTopic), envelopeHash) {
+				log.Info("MESSAGE FOUND!", logging.HexString("envelopeHash", envelopeHash), logging.HostID("peerID", info.ID))
+				return 0, nil
+			}
+		}
 
 		cnt += len(result.GetMessages())
 	}
