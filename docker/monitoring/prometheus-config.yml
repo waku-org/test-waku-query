@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: "Monitoring"
+
+scrape_configs:
+  - job_name: "nwaku_postgres"
+    static_configs:
+    - targets: ['nwaku_postgres:8003']
+
+  - job_name: "nwaku_sqlite"
+    static_configs:
+    - targets: ['nwaku_sqlite:8004']
+
+  - job_name: postgres-exporter
+    static_configs:
+    - targets: ['postgres-exporter:9187']
