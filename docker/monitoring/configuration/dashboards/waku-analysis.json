@@ -2703,20 +2703,6 @@
           "legendFormat": "{{type}}",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "sum by (type)(increase(waku_store_errors{instance=~\"nwaku_postgres:8003\"}[1m]))",
-          "hide": false,
-          "interval": "",
-          "legendFormat": "{{type}}",
-          "range": true,
-          "refId": "B"
         }
       ],
       "title": "Waku Archive Errors (Postgres) (1m rate)",
@@ -2805,26 +2791,12 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum by (type)(increase(waku_archive_errors{instance=~\"nwaku_:8004\"}[1m]))",
+          "expr": "sum by (type)(increase(waku_archive_errors{instance=~\"nwaku_sqlite:8004\"}[1m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "{{type}}",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "sum by (type)(increase(waku_store_errors{instance=~\"nwaku_sqlite:8004\"}[1m]))",
-          "hide": false,
-          "interval": "",
-          "legendFormat": "{{type}}",
-          "range": true,
-          "refId": "B"
         }
       ],
       "title": "Waku Archive Errors (SQLite) (1m rate)",
