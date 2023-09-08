@@ -40,12 +40,29 @@ services:
       - *logging
       - *pg_env
     volumes:
-      - ./run_node_postgres.sh:/opt/run_node_postgres.sh:Z
+      - ./run_nwaku_store_postgres.sh:/opt/run_nwaku_store_postgres.sh:Z
     entrypoint: sh
     command:
-      - /opt/run_node_postgres.sh
+      - /opt/run_nwaku_store_postgres.sh
     depends_on:
       - postgres
+
+  nwaku_client_postgres:
+    ## Waku node that acts as a Store client to the `nwaku_postgres` and listens
+    ## to REST-Store requests
+    image: statusteam/nim-waku:v0.19.0
+    restart: on-failure
+    ports:
+      - 0.0.0.0:8645:8645/tcp
+    <<:
+      - *logging
+    volumes:
+      - ./run_nwaku_store_client_postgres.sh:/opt/run_nwaku_store_client_postgres.sh:Z
+    entrypoint: sh
+    command:
+      - /opt/run_nwaku_store_client_postgres.sh
+    depends_on:
+      - nwaku_postgres
 
   nwaku_sqlite:
     ## Waku node with Store mounted & SQLite
@@ -59,10 +76,27 @@ services:
       - *logging
     volumes:
       - ./data/sqlite:/data
-      - ./run_node_sqlite.sh:/opt/run_node_sqlite.sh:Z
+      - ./run_nwaku_store_sqlite.sh:/opt/run_nwaku_store_sqlite.sh:Z
     entrypoint: sh
     command:
-      - /opt/run_node_sqlite.sh
+      - /opt/run_nwaku_store_sqlite.sh
+
+  nwaku_client_sqlite:
+    ## Waku node that acts as a Store client to the `nwaku_sqlite` and listens
+    ## to REST-Store requests
+    image: statusteam/nim-waku:v0.19.0
+    restart: on-failure
+    ports:
+      - 0.0.0.0:8646:8646/tcp
+    <<:
+      - *logging
+    volumes:
+      - ./run_nwaku_store_client_sqlite.sh:/opt/run_nwaku_store_client_sqlite.sh:Z
+    entrypoint: sh
+    command:
+      - /opt/run_nwaku_store_client_sqlite.sh
+    depends_on:
+      - nwaku_sqlite
 
   msg_publisher:
     ## Sends json-rpc 'post_waku_v2_relay_v1_message' messages infinitely
@@ -75,21 +109,6 @@ services:
     entrypoint: sh
     command:
       - /opt/msg_publisher.sh
-    depends_on:
-      - nwaku_postgres
-      - nwaku_sqlite
-
-  store_query_producer:
-    ## Sends json-rpc 'get_waku_v2_store_v1_messages' messages infinitely
-    image: alpine:3.16
-    restart: on-failure
-    logging:
-      driver: "none"
-    volumes:
-      - ./store_query_producer.sh:/opt/store_query_producer.sh:Z
-    entrypoint: sh
-    command:
-      - /opt/store_query_producer.sh
     depends_on:
       - nwaku_postgres
       - nwaku_sqlite
