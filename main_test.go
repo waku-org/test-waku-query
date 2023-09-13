@@ -21,7 +21,6 @@ var nodeList = []string{
 
 func (s *StoreSuite) TestBasic() {
 	pubsubTopic := relay.DefaultWakuTopic
-	contentTopics := []string{"test1"}
 	startTime := time.Now()
 	endTime := time.Now()
 
@@ -49,9 +48,10 @@ func (s *StoreSuite) TestBasic() {
 		wg.Add(1)
 		func(addr string) {
 			defer wg.Done()
-			_, err := queryNode(ctx, s.node, addr, pubsubTopic, contentTopics, startTime, endTime)
+			_, err := queryNode(ctx, s.node, addr, pubsubTopic, startTime, endTime)
 			s.NoError(err)
 		}(addr)
 	}
+
 	wg.Wait()
 }

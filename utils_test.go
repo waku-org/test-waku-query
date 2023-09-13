@@ -7,10 +7,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/waku-org/go-waku/waku/v2/node"
+	"github.com/waku-org/go-waku/waku/v2/protocol"
 	"github.com/waku-org/go-waku/waku/v2/protocol/pb"
+	"github.com/waku-org/go-waku/waku/v2/protocol/relay"
 	"github.com/waku-org/go-waku/waku/v2/protocol/store"
 	"go.uber.org/zap"
 )
@@ -86,7 +89,7 @@ func sendMessagesConcurrent(ctx context.Context, node *node.WakuNode, numMsgToSe
 	return nil
 }
 
-func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopic string, contentTopics []string, startTime time.Time, endTime time.Time) (int, error) {
+func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopic string, startTime time.Time, endTime time.Time) (int, error) {
 	p, err := multiaddr.NewMultiaddr(addr)
 	if err != nil {
 		return -1, err
@@ -101,10 +104,9 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 	cursorIterations := 0
 
 	result, err := node.Store().Query(ctx, store.Query{
-		Topic:         pubsubTopic,
-		ContentTopics: contentTopics,
-		StartTime:     startTime.UnixNano(),
-		EndTime:       endTime.UnixNano(),
+		Topic:     pubsubTopic,
+		StartTime: 1694630160000000000,
+		EndTime:   1694630700000000000,
 	}, store.WithPeer(info.ID), store.WithPaging(false, 100), store.WithRequestId([]byte{1, 2, 3, 4, 5, 6, 7, 8}))
 	if err != nil {
 		return -1, err
@@ -120,6 +122,17 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 			break
 		}
 		cursorIterations += 1
+
+		for _, msg := range result.GetMessages() {
+			env := protocol.NewEnvelope(msg, time.Now().UnixNano(), relay.DefaultWakuTopic)
+
+			envHash := hexutil.Encode(env.Hash())
+			hash := "0x322090c57231578a86adb5ab4cbcf4d1d66458ef7f6a579e551cc71c88be5e75"
+			if envHash == hash {
+				fmt.Println("FOUND!!!!!!")
+				panic("BYE")
+			}
+		}
 
 		cnt += len(result.GetMessages())
 	}
