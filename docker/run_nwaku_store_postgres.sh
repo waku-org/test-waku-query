@@ -22,4 +22,4 @@ exec /usr/bin/wakunode\
   --metrics-server-address=0.0.0.0\
   --store-message-db-url="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/postgres"\
   --store=true\
-  --store-message-retention-policy=time:864000
+  --store-message-retention-policy=capacity:4000000
