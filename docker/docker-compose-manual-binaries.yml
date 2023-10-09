@@ -93,8 +93,8 @@ services:
       - *logging
       - *pg_env
     volumes:
-    change-this-to-local-build-folder
-      - /home/ivansete/workspace/status/nwaku/build/wakunode2:/usr/bin/wakunode:Z
+    # This is expected to be run from metal-01.he-eu-hel1.wakudev.misc.statusim.net
+      - /home/shared/nwaku/build/wakunode2:/usr/bin/wakunode:Z
       - ./run_nwaku_store_postgres_ubuntu.sh:/opt/run_nwaku_store_postgres.sh:Z
     entrypoint: bash
     command:
