@@ -22,4 +22,4 @@ exec /usr/bin/wakunode\
   --metrics-server-address=0.0.0.0\
   --store-message-db-url="sqlite:///data/store.sqlite3"\
   --store=true\
-  --store-message-retention-policy=time:864000
+  --store-message-retention-policy=capacity:4000000
