@@ -1,0 +1,184 @@
+
+## Kindly run the docker compose command (`docker compose up`) from the same
+## folder as this file.
+
+version: "3.7"
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 1000m
+
+# Environment variable definitions
+x-pg-pass: &pg_pass ${POSTGRES_PASSWORD:-test123}
+x-pg-user: &pg_user ${POSTGRES_USER:-postgres}
+
+x-pg-environment: &pg_env
+  environment:
+    POSTGRES_USER: *pg_user
+    POSTGRES_PASSWORD: *pg_pass
+    PGDATA: /var/lib/postgresql/data/pgdata
+
+x-pg-exporter-env: &pg_exp_env
+  environment:
+    POSTGRES_PASSWORD: *pg_pass
+    DATA_SOURCE_URI: postgres?sslmode=disable
+    DATA_SOURCE_USER: *pg_user
+    DATA_SOURCE_PASS: *pg_pass
+    PG_EXPORTER_EXTEND_QUERY_PATH: /etc/pgexporter/queries.yml
+
+services:
+
+  nwaku_client_postgres:
+    ## Waku node that acts as a Store client to the `nwaku_postgres` and listens
+    ## to REST-Store requests
+    image: statusteam/nim-waku:v0.20.0
+    restart: on-failure
+    ports:
+      - 0.0.0.0:8645:8645/tcp
+    <<:
+      - *logging
+    volumes:
+      - ./run_nwaku_store_client_postgres.sh:/opt/run_nwaku_store_client_postgres.sh:Z
+    entrypoint: sh
+    command:
+      - /opt/run_nwaku_store_client_postgres.sh
+    depends_on:
+      - nwaku_postgres
+
+  nwaku_sqlite:
+    ## Waku node with Store mounted & SQLite
+    image: ubuntu
+    restart: on-failure
+    ports:
+      - 8546:8546/tcp
+      - 8004:8004
+      - 0.0.0.0:30304:30304
+    <<:
+      - *logging
+    volumes:
+      - /home/ivansete/workspace/status/nwaku/build/wakunode2:/usr/bin/wakunode:Z
+      - ./data/sqlite:/data
+      - ./run_nwaku_store_sqlite_ubuntu.sh:/opt/run_nwaku_store_sqlite.sh:Z
+    entrypoint: sh
+    command:
+      - /opt/run_nwaku_store_sqlite.sh
+
+  nwaku_client_sqlite:
+    ## Waku node that acts as a Store client to the `nwaku_sqlite` and listens
+    ## to REST-Store requests
+    image: statusteam/nim-waku:v0.20.0
+    restart: on-failure
+    ports:
+      - 0.0.0.0:8646:8646/tcp
+    <<:
+      - *logging
+    volumes:
+      - ./run_nwaku_store_client_sqlite.sh:/opt/run_nwaku_store_client_sqlite.sh:Z
+    entrypoint: sh
+    command:
+      - /opt/run_nwaku_store_client_sqlite.sh
+    depends_on:
+      - nwaku_sqlite
+
+  nwaku_postgres:
+    ## Waku node with Store mounted & Postgres
+    image: ubuntu
+    restart: on-failure
+    ports:
+      - 8545:8545/tcp
+      - 8003:8003
+      - 0.0.0.0:30303:30303
+    <<:
+      - *logging
+      - *pg_env
+    volumes:
+    change-this-to-local-build-folder
+      - /home/ivansete/workspace/status/nwaku/build/wakunode2:/usr/bin/wakunode:Z
+      - ./run_nwaku_store_postgres_ubuntu.sh:/opt/run_nwaku_store_postgres.sh:Z
+    entrypoint: bash
+    command:
+      - /opt/run_nwaku_store_postgres.sh
+    depends_on:
+      - postgres
+
+  # msg_publisher:
+  #   ## Sends json-rpc 'post_waku_v2_relay_v1_message' messages infinitely
+  #   image: alpine:3.16
+  #   restart: on-failure
+  #   logging:
+  #     driver: "none"
+  #   volumes:
+  #     - ./msg_publisher.sh:/opt/msg_publisher.sh:Z
+  #   entrypoint: sh
+  #   command:
+  #     - /opt/msg_publisher.sh
+  #   depends_on:
+  #     - nwaku_postgres
+  #     - nwaku_sqlite
+
+  prometheus:
+    image: docker.io/prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus-config.yml:/etc/prometheus/prometheus.yml:Z
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - 127.0.0.1:9090:9090
+    restart: on-failure
+    depends_on:
+      - postgres-exporter
+      - nwaku_postgres
+      - nwaku_sqlite
+
+  grafana:
+    image: docker.io/grafana/grafana:latest
+    env_file:
+      - ./monitoring/configuration/grafana-plugins.env
+    volumes:
+      - ./monitoring/configuration/grafana.ini:/etc/grafana/grafana.ini:Z
+      - ./monitoring/configuration/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:Z
+      - ./monitoring/configuration/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:Z
+      - ./monitoring/configuration/dashboards:/var/lib/grafana/dashboards/:Z
+      - ./monitoring/configuration/customizations/custom-logo.svg:/usr/share/grafana/public/img/grafana_icon.svg:Z
+      - ./monitoring/configuration/customizations/custom-logo.svg:/usr/share/grafana/public/img/grafana_typelogo.svg:Z
+      - ./monitoring/configuration/customizations/custom-logo.png:/usr/share/grafana/public/img/fav32.png:Z
+    ports:
+      - 127.0.0.1:3000:3000
+    restart: on-failure
+    depends_on:
+      - prometheus
+
+  postgres:
+    # This service is used when the Waku node has the 'store' protocol enabled
+    # and the store-message-db-url is set to use Postgres
+    image: postgres:15.4-alpine3.18
+    restart: on-failure
+    <<: *pg_env
+    ports:
+      - 0.0.0.0:5432:5432
+    volumes:
+      - ./data/postgres-data:/var/lib/postgresql/data
+      - ./postgres_cfg/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./postgres_cfg/db.sql:/docker-entrypoint-initdb.d/db.sql
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+
+  postgres-exporter:
+    # Service aimed to scrape information from Postgres and post it to Prometeus
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.12.0
+    restart: on-failure
+    <<: *pg_exp_env
+    volumes:
+      - ./monitoring/configuration/postgres-exporter.yml:/etc/pgexporter/postgres-exporter.yml
+      - ./monitoring/configuration/pg-exporter-queries.yml:/etc/pgexporter/queries.yml
+    command:
+      # Both the config file and 'DATA_SOURCE_NAME' should contain valid connection info
+      - --config.file=/etc/pgexporter/postgres-exporter.yml
+    depends_on:
+      - postgres
