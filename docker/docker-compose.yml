@@ -30,7 +30,7 @@ x-pg-exporter-env: &pg_exp_env
 services:
   nwaku_postgres:
     ## Waku node with Store mounted & Postgres
-    image: statusteam/nim-waku:v0.19.0
+    image: statusteam/nim-waku:v0.20.0
     restart: on-failure
     ports:
       - 8545:8545/tcp
@@ -50,7 +50,7 @@ services:
   nwaku_client_postgres:
     ## Waku node that acts as a Store client to the `nwaku_postgres` and listens
     ## to REST-Store requests
-    image: statusteam/nim-waku:v0.19.0
+    image: statusteam/nim-waku:v0.20.0
     restart: on-failure
     ports:
       - 0.0.0.0:8645:8645/tcp
@@ -148,7 +148,7 @@ services:
   postgres:
     # This service is used when the Waku node has the 'store' protocol enabled
     # and the store-message-db-url is set to use Postgres
-    image: postgres:alpine3.18
+    image: postgres:15.4-alpine3.18
     restart: on-failure
     <<: *pg_env
     ports:
