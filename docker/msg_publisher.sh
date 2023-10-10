@@ -23,7 +23,8 @@ sleep 20
 
 while true
 do
-  payload_size=$(( $RANDOM % 1000 + 10 ))
+  ## Target of ~10kB
+  payload_size=$(( $RANDOM % 2000 + 9000 ))
   payload=$(openssl rand -hex ${payload_size} | base64 | tr -d '\n')
 
   ## Make the ""postgres"" node to publish a message
