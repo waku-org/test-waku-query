@@ -32,6 +32,9 @@ services:
     ## Waku node with Store mounted & Postgres
     image: statusteam/nim-waku:v0.20.0
     restart: on-failure
+    ports:
+      - 0.0.0.0:30303:30303
+      - 0.0.0.0:9000:9000
     <<:
       - *logging
       - *pg_env
@@ -60,8 +63,11 @@ services:
 
   nwaku_sqlite:
     ## Waku node with Store mounted & SQLite
-    image: statusteam/nim-waku:v0.19.0
+    image: statusteam/nim-waku:v0.20.0
     restart: on-failure
+    ports:
+      - 0.0.0.0:30304:30304
+      - 0.0.0.0:9001:9001
     <<:
       - *logging
     volumes:
@@ -74,7 +80,7 @@ services:
   nwaku_client_sqlite:
     ## Waku node that acts as a Store client to the `nwaku_sqlite` and listens
     ## to REST-Store requests
-    image: statusteam/nim-waku:v0.19.0
+    image: statusteam/nim-waku:v0.20.0
     restart: on-failure
     <<:
       - *logging
@@ -86,20 +92,20 @@ services:
     depends_on:
       - nwaku_sqlite
 
-  msg_publisher:
-    ## Sends json-rpc 'post_waku_v2_relay_v1_message' messages infinitely
-    image: alpine:3.16
-    restart: on-failure
-    logging:
-      driver: "none"
-    volumes:
-      - ./msg_publisher.sh:/opt/msg_publisher.sh:Z
-    entrypoint: sh
-    command:
-      - /opt/msg_publisher.sh
-    depends_on:
-      - nwaku_postgres
-      - nwaku_sqlite
+  # msg_publisher:
+  #   ## Sends json-rpc 'post_waku_v2_relay_v1_message' messages infinitely
+  #   image: alpine:3.16
+  #   restart: on-failure
+  #   logging:
+  #     driver: "none"
+  #   volumes:
+  #     - ./msg_publisher.sh:/opt/msg_publisher.sh:Z
+  #   entrypoint: sh
+  #   command:
+  #     - /opt/msg_publisher.sh
+  #   depends_on:
+  #     - nwaku_postgres
+  #     - nwaku_sqlite
 
   prometheus:
     image: docker.io/prom/prometheus:latest
@@ -126,6 +132,8 @@ services:
       - ./monitoring/configuration/customizations/custom-logo.svg:/usr/share/grafana/public/img/grafana_typelogo.svg:Z
       - ./monitoring/configuration/customizations/custom-logo.png:/usr/share/grafana/public/img/fav32.png:Z
     restart: on-failure
+    ports:
+      - 0.0.0.0:3000:3000
     depends_on:
       - prometheus
 
