@@ -13,7 +13,7 @@ exec /usr/bin/wakunode\
   --topic=/waku/2/dev-waku/proto\
   --rpc-admin=true\
   --keep-alive=true\
-  --log-level=ERROR\
+  --log-level=DEBUG\
   --rpc-port=8545\
   --rpc-address=0.0.0.0\
   --tcp-port=30303\
