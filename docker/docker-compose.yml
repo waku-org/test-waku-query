@@ -92,20 +92,20 @@ services:
     depends_on:
       - nwaku_sqlite
 
-  # msg_publisher:
-  #   ## Sends json-rpc 'post_waku_v2_relay_v1_message' messages infinitely
-  #   image: alpine:3.16
-  #   restart: on-failure
-  #   logging:
-  #     driver: "none"
-  #   volumes:
-  #     - ./msg_publisher.sh:/opt/msg_publisher.sh:Z
-  #   entrypoint: sh
-  #   command:
-  #     - /opt/msg_publisher.sh
-  #   depends_on:
-  #     - nwaku_postgres
-  #     - nwaku_sqlite
+  msg_publisher:
+    ## Sends json-rpc 'post_waku_v2_relay_v1_message' messages infinitely
+    image: alpine:3.16
+    restart: on-failure
+    logging:
+      driver: "none"
+    volumes:
+      - ./msg_publisher.sh:/opt/msg_publisher.sh:Z
+    entrypoint: sh
+    command:
+      - /opt/msg_publisher.sh
+    depends_on:
+      - nwaku_postgres
+      - nwaku_sqlite
 
   prometheus:
     image: docker.io/prom/prometheus:latest
