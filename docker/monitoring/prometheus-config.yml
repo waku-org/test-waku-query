@@ -7,11 +7,11 @@ global:
 scrape_configs:
   - job_name: "nwaku_postgres"
     static_configs:
-    - targets: ['nwaku_postgres:8003']
+    - targets: ['nwaku-postgres:8003']
 
   - job_name: "nwaku_sqlite"
     static_configs:
-    - targets: ['nwaku_sqlite:8004']
+    - targets: ['nwaku-sqlite:8004']
 
   - job_name: postgres-exporter
     static_configs:

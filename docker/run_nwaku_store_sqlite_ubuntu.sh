@@ -3,16 +3,32 @@
 apt-get update
 ## Install the `dig` command
 apt-get install dnsutils -y
+apt-get install wget -y
 
-peer_IP=$(dig +short nwaku_postgres)
+bootstrap_IP=$(dig +short bootstrap)
 
 apt-get install libpq5 -y
-
 chmod +x /usr/bin/wakunode
 
+RETRIES=${RETRIES:=10}
+
+while [ -z "${BOOTSTRAP_ENR}" ] && [ ${RETRIES} -ge 0 ]; do
+  BOOTSTRAP_ENR=$(wget -O - --post-data='{"jsonrpc":"2.0","method":"get_waku_v2_debug_v1_info","params":[],"id":1}' --header='Content-Type:application/json' http://${bootstrap_IP}:8544/ 2> /dev/null | sed 's/.*"enrUri":"\([^"]*\)".*/\1/');
+  echo "Bootstrap node not ready in ${bootstrap_IP}, retrying (retries left: ${RETRIES})"
+  sleep 1
+  RETRIES=$(( $RETRIES - 1 ))
+done
+
+if [ -z "${BOOTSTRAP_ENR}" ]; then
+   echo "Could not get BOOTSTRAP_ENR and none provided. Failing"
+   exit 1
+fi
+
+IP=$(hostname -I)
+
+echo "I am sqlite ubuntu. Listening on: ${IP}"
+
 ./usr/bin/wakunode\
-  --nodekey=2d714a1fada214dead6dc9c7274585eca0ff292451866e7d6d677dc818e8ccd2\
-  --staticnode=/ip4/${peer_IP}/tcp/30303/p2p/16Uiu2HAmJyLCRhiErTRFcW5GKPrpoMjGbbWdFMx4GCUnnhmxeYhd\
   --relay=true\
   --topic=/waku/2/default-waku/proto\
   --topic=/waku/2/dev-waku/proto\
@@ -21,10 +37,15 @@ chmod +x /usr/bin/wakunode
   --log-level=DEBUG\
   --rpc-port=8546\
   --rpc-address=0.0.0.0\
-  --tcp-port=30304\
   --metrics-server=True\
   --metrics-server-port=8004\
   --metrics-server-address=0.0.0.0\
+  --max-connections=250\
+  --dns-discovery=true\
+  --discv5-discovery=true\
+  --discv5-enr-auto-update=True\
+  --discv5-bootstrap-node=${BOOTSTRAP_ENR}\
+  --nat=extip:${IP}\
   --store-message-db-url="sqlite:///data/store.sqlite3"\
   --store=true\
   --store-message-retention-policy=capacity:4000000
