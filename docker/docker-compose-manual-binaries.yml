@@ -3,6 +3,15 @@
 ## folder as this file.
 
 version: "3.7"
+
+networks:
+  simulation:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "10.1.0.0/22"
+
 x-logging: &logging
   logging:
     driver: json-file
@@ -29,25 +38,28 @@ x-pg-exporter-env: &pg_exp_env
 
 services:
 
-  nwaku_client_postgres:
-    ## Waku node that acts as a Store client to the `nwaku_postgres` and listens
-    ## to REST-Store requests
+  bootstrap:
     image: statusteam/nim-waku:v0.20.0
     restart: on-failure
-    <<:
-      - *logging
-    volumes:
-      - ./run_nwaku_store_client_postgres.sh:/opt/run_nwaku_store_client_postgres.sh:Z
+    ports:
+      - 127.0.0.1:60000:60000
+      - 127.0.0.1:8008:8008
+      - 127.0.0.1:9000:9000
+      - 127.0.0.1:8544:8544
     entrypoint: sh
     command:
-      - /opt/run_nwaku_store_client_postgres.sh
-    depends_on:
-      - nwaku_postgres
+    - '/opt/run_bootstrap.sh'
+    volumes:
+      - ./run_bootstrap.sh:/opt/run_bootstrap.sh:Z
+    networks:
+      - simulation
 
-  nwaku_sqlite:
+  nwaku-sqlite:
     ## Waku node with Store mounted & SQLite
     image: ubuntu
     restart: on-failure
+    ports:
+      - 0.0.0.0:8546:8546
     <<:
       - *logging
     volumes:
@@ -57,53 +69,60 @@ services:
     entrypoint: sh
     command:
       - /opt/run_nwaku_store_sqlite.sh
+    networks:
+      - simulation
 
-  nwaku_client_sqlite:
-    ## Waku node that acts as a Store client to the `nwaku_sqlite` and listens
-    ## to REST-Store requests
-    image: statusteam/nim-waku:v0.20.0
-    restart: on-failure
-    <<:
-      - *logging
-    volumes:
-      - ./run_nwaku_store_client_sqlite.sh:/opt/run_nwaku_store_client_sqlite.sh:Z
-    entrypoint: sh
-    command:
-      - /opt/run_nwaku_store_client_sqlite.sh
-    depends_on:
-      - nwaku_sqlite
-
-  nwaku_postgres:
+  nwaku-postgres:
     ## Waku node with Store mounted & Postgres
     image: ubuntu
     restart: on-failure
+    ports:
+      - 0.0.0.0:8545:8545
     <<:
       - *logging
       - *pg_env
     volumes:
     # This is expected to be run from metal-01.he-eu-hel1.wakudev.misc.statusim.net
-      - /home/shared/nwaku/build/wakunode2:/usr/bin/wakunode:Z
-      - ./run_nwaku_store_postgres_ubuntu.sh:/opt/run_nwaku_store_postgres.sh:Z
+      - /home/ivansete/workspace/status/nwaku/build/wakunode2:/usr/bin/wakunode:Z
+      - ./run_nwaku_store_postgres_ubuntu.sh:/opt/run_nwaku_store_postgres_ubuntu.sh:Z
     entrypoint: bash
     command:
-      - /opt/run_nwaku_store_postgres.sh
+      - /opt/run_nwaku_store_postgres_ubuntu.sh
     depends_on:
       - postgres
+    networks:
+      - simulation
 
-  # msg_publisher:
-  #   ## Sends json-rpc 'post_waku_v2_relay_v1_message' messages infinitely
-  #   image: alpine:3.16
-  #   restart: on-failure
-  #   logging:
-  #     driver: "none"
-  #   volumes:
-  #     - ./msg_publisher.sh:/opt/msg_publisher.sh:Z
-  #   entrypoint: sh
-  #   command:
-  #     - /opt/msg_publisher.sh
-  #   depends_on:
-  #     - nwaku_postgres
-  #     - nwaku_sqlite
+  waku-store-query-generator:
+    image: ivansete/waku-store-request-maker:91bb3ffd
+    restart: on-failure
+    entrypoint: sh
+      - 'opt/run_waku_store_query_maker.sh'
+    deploy:
+      replicas: 1
+    volumes:
+      - ./run_waku_store_query_maker.sh:/opt/run_waku_store_query_maker.sh:Z
+    environment:
+      STORE_QUERIES_PER_SECOND: 10
+    networks:
+      - simulation
+
+  waku-publisher:
+    image: alrevuelta/waku-publisher:9fb206c
+    entrypoint: sh
+      - 'opt/run_wakupublisher.sh'
+    deploy:
+      replicas: 1
+    volumes:
+      - ./run_wakupublisher.sh:/opt/run_wakupublisher.sh:Z
+    environment:
+      MSG_PER_SECOND: 10
+      MSG_SIZE_KBYTES: 10
+    depends_on:
+      - nwaku-postgres
+      - nwaku-sqlite
+    networks:
+      - simulation
 
   prometheus:
     image: docker.io/prom/prometheus:latest
@@ -114,11 +133,15 @@ services:
     restart: on-failure
     depends_on:
       - postgres-exporter
-      - nwaku_postgres
-      - nwaku_sqlite
+      - nwaku-postgres
+      - nwaku-sqlite
+    networks:
+      - simulation
 
   grafana:
     image: docker.io/grafana/grafana:latest
+    ports:
+      - 0.0.0.0:3000:3000
     env_file:
       - ./monitoring/configuration/grafana-plugins.env
     volumes:
@@ -132,12 +155,16 @@ services:
     restart: on-failure
     depends_on:
       - prometheus
+    networks:
+      - simulation
 
   postgres:
     # This service is used when the Waku node has the 'store' protocol enabled
     # and the store-message-db-url is set to use Postgres
     image: postgres:15.4-alpine3.18
     restart: on-failure
+    ports:
+      - 0.0.0.0:5432:5432
     <<: *pg_env
     volumes:
       - ./data/postgres-data:/var/lib/postgresql/data
@@ -150,6 +177,8 @@ services:
       timeout: 60s
       retries: 5
       start_period: 80s
+    networks:
+      - simulation
 
   postgres-exporter:
     # Service aimed to scrape information from Postgres and post it to Prometeus
@@ -164,3 +193,5 @@ services:
       - --config.file=/etc/pgexporter/postgres-exporter.yml
     depends_on:
       - postgres
+    networks:
+      - simulation
