@@ -104,9 +104,10 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 	cursorIterations := 0
 
 	result, err := node.Store().Query(ctx, store.Query{
-		Topic:     pubsubTopic,
-		StartTime: 1694630160000000000,
-		EndTime:   1694630700000000000,
+		Topic:         "/waku/2/default-waku/proto",
+		StartTime:     time.Now().Add(time.Duration(-30) * time.Minute).UnixNano(),
+		EndTime:       time.Now().UnixNano(),
+		ContentTopics: []string{"/waku/1/0xee3a5ba0/rfc26"},
 	}, store.WithPeer(info.ID), store.WithPaging(false, 100), store.WithRequestId([]byte{1, 2, 3, 4, 5, 6, 7, 8}))
 	if err != nil {
 		return -1, err
@@ -127,11 +128,7 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 			env := protocol.NewEnvelope(msg, time.Now().UnixNano(), relay.DefaultWakuTopic)
 
 			envHash := hexutil.Encode(env.Hash())
-			hash := "0x322090c57231578a86adb5ab4cbcf4d1d66458ef7f6a579e551cc71c88be5e75"
-			if envHash == hash {
-				fmt.Println("FOUND!!!!!!")
-				panic("BYE")
-			}
+			fmt.Println(envHash, env.Message().ContentTopic, env.Message().Timestamp)
 		}
 
 		cnt += len(result.GetMessages())

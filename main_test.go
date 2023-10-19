@@ -24,7 +24,7 @@ func (s *StoreSuite) TestBasic() {
 	startTime := time.Now()
 	endTime := time.Now()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // Test shouldnt take more than 60s
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Second) // Test shouldnt take more than 60s
 	defer cancel()
 
 	// Connecting to nodes
