@@ -51,6 +51,11 @@ services:
     - '/opt/run_bootstrap.sh'
     volumes:
       - ./run_bootstrap.sh:/opt/run_bootstrap.sh:Z
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2048M
     networks:
       - simulation
 
@@ -69,6 +74,11 @@ services:
     entrypoint: sh
     command:
       - /opt/run_nwaku_store_sqlite.sh
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2048M
     networks:
       - simulation
 
@@ -90,6 +100,11 @@ services:
       - /opt/run_nwaku_store_postgres_ubuntu.sh
     depends_on:
       - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2048M
     networks:
       - simulation
 
@@ -177,6 +192,11 @@ services:
       timeout: 60s
       retries: 5
       start_period: 80s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2048M
     networks:
       - simulation
 
