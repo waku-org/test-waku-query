@@ -47,6 +47,9 @@ if [ -z "${BOOTSTRAP_ENR}" ]; then
    exit 1
 fi
 
+## Further parameter details:
+#     --num-minutes-query -> to indicate the time window in the query. storedAt field.
+
 echo "Using bootstrap node: ${BOOTSTRAP_ENR}"
 exec /main\
     --pubsub-topic="/waku/2/default-waku/proto"\
@@ -55,4 +58,5 @@ exec /main\
     --bootstrap-node=${BOOTSTRAP_ENR}\
     --peer-store-postgres-addr="${POSTGRES_ADDR}"\
     --peer-store-sqlite-addr="${SQLITE_ADDR}"\
-    --num-minutes-query=60
+    --num-minutes-query=60\
+    --num-concurrent-users=1
