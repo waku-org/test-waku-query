@@ -48,4 +48,4 @@ echo "I am postgres ubuntu. Listening on: ${IP}"
   --nat=extip:${IP}\
   --store-message-db-url="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/postgres"\
   --store=true\
-  --store-message-retention-policy=capacity:4000000
+  --store-message-retention-policy=capacity:12000000

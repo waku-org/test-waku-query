@@ -48,4 +48,4 @@ echo "I am sqlite ubuntu. Listening on: ${IP}"
   --nat=extip:${IP}\
   --store-message-db-url="sqlite:///data/store.sqlite3"\
   --store=true\
-  --store-message-retention-policy=capacity:4000000
+  --store-message-retention-policy=capacity:12000000
