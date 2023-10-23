@@ -94,7 +94,7 @@ services:
       - simulation
 
   waku-store-query-generator:
-    image: ivansete/waku-store-request-maker:91bb3ffd
+    image: ivansete/waku-store-request-maker:19e645
     restart: on-failure
     entrypoint: sh
       - 'opt/run_waku_store_query_maker.sh'
@@ -103,7 +103,7 @@ services:
     volumes:
       - ./run_waku_store_query_maker.sh:/opt/run_waku_store_query_maker.sh:Z
     environment:
-      STORE_QUERIES_PER_SECOND: 10
+      STORE_QUERIES_PER_SECOND: 1
     networks:
       - simulation
 
