@@ -83,7 +83,7 @@ services:
       - *pg_env
     volumes:
     # This is expected to be run from metal-01.he-eu-hel1.wakudev.misc.statusim.net
-      - /home/ivansete/workspace/status/nwaku/build/wakunode2:/usr/bin/wakunode:Z
+      - /home/shared/nwaku/build/wakunode2:/usr/bin/wakunode:Z
       - ./run_nwaku_store_postgres_ubuntu.sh:/opt/run_nwaku_store_postgres_ubuntu.sh:Z
     entrypoint: bash
     command:
