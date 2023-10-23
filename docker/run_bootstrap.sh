@@ -6,6 +6,14 @@ echo "I am a bootstrap node. Listening to: ${IP}"
 
 exec /usr/bin/wakunode\
       --relay=true\
+      --peer-exchange=true\
+      --peer-persistence=false\
+      --max-connections=300\
+      --dns-discovery=true\
+      --dns-discovery-url=enrtree://AL65EKLJAUXKKPG43HVTML5EFFWEZ7L4LOKTLZCLJASG4DSESQZEC@prod.status.nodes.status.im\
+      --discv5-discovery=true\
+      --discv5-udp-port=9000\
+      --discv5-enr-auto-update=False\
       --rpc-admin=true\
       --keep-alive=true\
       --max-connections=300\
