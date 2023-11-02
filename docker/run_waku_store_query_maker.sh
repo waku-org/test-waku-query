@@ -59,4 +59,4 @@ exec /main\
     --peer-store-postgres-addr="${POSTGRES_ADDR}"\
     --peer-store-sqlite-addr="${SQLITE_ADDR}"\
     --num-minutes-query=60\
-    --num-concurrent-users=1
+    --num-concurrent-users=${NUM_CONCURRENT_USERS}

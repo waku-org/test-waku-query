@@ -121,6 +121,7 @@ services:
       - ./run_waku_store_query_maker.sh:/opt/run_waku_store_query_maker.sh:Z
     environment:
       STORE_QUERIES_PER_SECOND: 1
+      NUM_CONCURRENT_USERS: 1
     networks:
       - simulation
 
