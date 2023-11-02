@@ -40,7 +40,7 @@ echo "I am sqlite ubuntu. Listening on: ${IP}"
   --metrics-server=True\
   --metrics-server-port=8004\
   --metrics-server-address=0.0.0.0\
-  --max-connections=250\
+  --max-connections=4\
   --dns-discovery=true\
   --discv5-discovery=true\
   --discv5-enr-auto-update=True\
