@@ -115,8 +115,6 @@ services:
     restart: on-failure
     entrypoint: sh
       - 'opt/run_waku_store_query_maker.sh'
-    deploy:
-      replicas: 1
     volumes:
       - ./run_waku_store_query_maker.sh:/opt/run_waku_store_query_maker.sh:Z
     environment:
@@ -129,8 +127,6 @@ services:
     image: alrevuelta/waku-publisher:9fb206c
     entrypoint: sh
       - 'opt/run_wakupublisher.sh'
-    deploy:
-      replicas: 1
     volumes:
       - ./run_wakupublisher.sh:/opt/run_wakupublisher.sh:Z
     environment:
