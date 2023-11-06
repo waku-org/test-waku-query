@@ -70,7 +70,7 @@ services:
     <<:
       - *logging
     volumes:
-      - /home/ivansete/workspace/status/nwaku/build/wakunode2:/usr/bin/wakunode:Z
+      - /home/shared/nwaku/build/wakunode2:/usr/bin/wakunode:Z
       - ./data/sqlite:/data
       - ./run_nwaku_store_sqlite_ubuntu.sh:/opt/run_nwaku_store_sqlite.sh:Z
     entrypoint: sh
