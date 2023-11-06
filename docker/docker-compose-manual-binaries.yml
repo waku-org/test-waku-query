@@ -27,6 +27,7 @@ x-pg-environment: &pg_env
     POSTGRES_USER: *pg_user
     POSTGRES_PASSWORD: *pg_pass
     PGDATA: /var/lib/postgresql/data/pgdata
+    MALLOC_CHECK_: 2 # Not directly related to Postgres. Helps debug possible crashes in nwaku node.
 
 x-pg-exporter-env: &pg_exp_env
   environment:
