@@ -120,12 +120,15 @@ services:
     volumes:
       - ./run_database_hammer.sh:/opt/run_database_hammer.sh:Z
     entrypoint: sh
-    replicas: 3
+    deploy:
+      mode: replicated
+      replicas: 1
     command:
       - /opt/run_database_hammer.sh
     depends_on:
-      - nwaku_postgres
-      - nwaku_sqlite
+      - postgres
+    networks:
+      - simulation
 
   waku-store-query-generator:
     image: ivansete/waku-store-request-maker:19e645
