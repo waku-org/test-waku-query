@@ -111,6 +111,22 @@ services:
     networks:
       - simulation
 
+  db-postgres-hammer:
+    ## This service is aimed to mimick other nodes interacting with the same database
+    image: alpine:3.16
+    restart: on-failure
+    logging:
+      driver: "none"
+    volumes:
+      - ./run_database_hammer.sh:/opt/run_database_hammer.sh:Z
+    entrypoint: sh
+    replicas: 3
+    command:
+      - /opt/run_database_hammer.sh
+    depends_on:
+      - nwaku_postgres
+      - nwaku_sqlite
+
   waku-store-query-generator:
     image: ivansete/waku-store-request-maker:19e645
     restart: on-failure
