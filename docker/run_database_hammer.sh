@@ -18,5 +18,5 @@ do
   echo "Before making query"
   psql -h postgres -p 5432 -U postgres -U postgres -w -c "${QUERY_LAST_FIVE_MINUTES}"
 
-  sleep 10
+  #sleep 0.01
 done
