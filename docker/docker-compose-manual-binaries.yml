@@ -115,8 +115,6 @@ services:
     ## This service is aimed to mimick other nodes interacting with the same database
     image: alpine:3.16
     restart: on-failure
-    logging:
-      driver: "none"
     volumes:
       - ./run_database_hammer.sh:/opt/run_database_hammer.sh:Z
     entrypoint: sh
