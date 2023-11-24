@@ -114,7 +114,7 @@ services:
 
   nwaku-postgres-additional:
     ## Waku node with Store mounted & Postgres
-    ## This is aimed to produce more more insert operation to the same Potsgres database.
+    ## This is aimed to produce more insert operation to the same Potsgres database.
     image: ubuntu
     restart: on-failure
     <<:
