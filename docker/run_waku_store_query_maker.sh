@@ -5,7 +5,7 @@ IP=$(ip a | grep "inet " | grep -Fv 127.0.0.1 | sed 's/.*inet \([^/]*\).*/\1/')
 echo "I am a waku store query generator"
 
 ## Getting the address of the Postgres node
-RETRIES=10
+RETRIES=20
 while [ -z "${POSTGRES_ADDR}" ] && [ ${RETRIES} -ge 0 ]; do
   POSTGRES_ADDR=$(wget -O - --post-data='{"jsonrpc":"2.0","method":"get_waku_v2_debug_v1_info","params":[],"id":1}' --header='Content-Type:application/json' http://nwaku-postgres:8545/ 2> /dev/null | sed 's/.*"listenAddresses":\["\(.*\)"].*/\1/');
   wget -O - --post-data='{"jsonrpc":"2.0","method":"get_waku_v2_debug_v1_info","params":[],"id":1}' --header='Content-Type:application/json' http://nwaku-postgres:8545/
@@ -20,7 +20,7 @@ if [ -z "${POSTGRES_ADDR}" ]; then
 fi
 
 ## Getting the address of the SQLite node
-RETRIES=10
+RETRIES=20
 while [ -z "${SQLITE_ADDR}" ] && [ ${RETRIES} -ge 0 ]; do
   SQLITE_ADDR=$(wget -O - --post-data='{"jsonrpc":"2.0","method":"get_waku_v2_debug_v1_info","params":[],"id":1}' --header='Content-Type:application/json' http://nwaku-sqlite:8546/ 2> /dev/null | sed 's/.*"listenAddresses":\["\(.*\)"].*/\1/');
   echo "Store SQLite node node not ready, retrying (retries left: ${RETRIES})"
@@ -34,7 +34,7 @@ if [ -z "${SQLITE_ADDR}" ]; then
 fi
 
 ## Getting the bootstrap node ENR
-RETRIES=10
+RETRIES=20
 while [ -z "${BOOTSTRAP_ENR}" ] && [ ${RETRIES} -ge 0 ]; do
   BOOTSTRAP_ENR=$(wget -O - --post-data='{"jsonrpc":"2.0","method":"get_waku_v2_debug_v1_info","params":[],"id":1}' --header='Content-Type:application/json' http://bootstrap:8544/ 2> /dev/null | sed 's/.*"enrUri":"\([^"]*\)".*/\1/');
   echo "Bootstrap node not ready, retrying (retries left: ${RETRIES})"

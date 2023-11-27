@@ -9,7 +9,7 @@ bootstrap_IP=$(dig +short bootstrap)
 
 apt-get install libpq5 -y
 
-RETRIES=${RETRIES:=10}
+RETRIES=${RETRIES:=20}
 
 while [ -z "${BOOTSTRAP_ENR}" ] && [ ${RETRIES} -ge 0 ]; do
   BOOTSTRAP_ENR=$(wget -O - --post-data='{"jsonrpc":"2.0","method":"get_waku_v2_debug_v1_info","params":[],"id":1}' --header='Content-Type:application/json' http://${bootstrap_IP}:8544/ 2> /dev/null | sed 's/.*"enrUri":"\([^"]*\)".*/\1/');
