@@ -149,6 +149,8 @@ services:
     volumes:
       - ./run_database_hammer.sh:/opt/run_database_hammer.sh:Z
     entrypoint: sh
+    logging:
+      driver: none
     deploy:
       mode: replicated
       replicas: 10
