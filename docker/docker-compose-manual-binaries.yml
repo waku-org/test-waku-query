@@ -76,6 +76,8 @@ services:
     entrypoint: sh
     command:
       - /opt/run_nwaku_store_sqlite.sh
+    depends_on:
+      - bootstrap
     deploy:
       resources:
         limits:
@@ -104,6 +106,7 @@ services:
       - /opt/run_nwaku_store_postgres_ubuntu.sh
     depends_on:
       - postgres
+      - bootstrap
     deploy:
       resources:
         limits:
@@ -128,7 +131,7 @@ services:
     command:
       - /opt/run_nwaku_store_postgres_ubuntu.sh
     depends_on:
-      - postgres
+      - bootstrap
     deploy:
       mode: replicated
       replicas: 10
@@ -166,6 +169,9 @@ services:
     environment:
       STORE_QUERIES_PER_SECOND: 1
       NUM_CONCURRENT_USERS: 1
+    depends_on:
+      - nwaku-postgres
+      - nwaku-sqlite
     networks:
       - simulation
 
@@ -179,6 +185,7 @@ services:
       MSG_PER_SECOND: 10
       MSG_SIZE_KBYTES: 10
     depends_on:
+      - bootstrap
       - nwaku-postgres
       - nwaku-sqlite
     networks:
