@@ -20,7 +20,7 @@ exec /usr/bin/wakunode\
       --dns-discovery=true\
       --discv5-discovery=true\
       --discv5-enr-auto-update=True\
-      --log-level=INFO\
+      --log-level=DEBUG\
       --rpc-port=8544\
       --rpc-address=0.0.0.0\
       --metrics-server=True\
