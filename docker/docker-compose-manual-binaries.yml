@@ -41,7 +41,7 @@ services:
 
   bootstrap:
     image: statusteam/nim-waku:v0.20.0
-    restart: on-failure
+    restart: always
     ports:
       - 127.0.0.1:60000:60000
       - 127.0.0.1:8008:8008
@@ -67,6 +67,7 @@ services:
     ports:
       - 0.0.0.0:8546:8546
       - 0.0.0.0:8004:8004
+      - 0.0.0.0:60001:60001
     <<:
       - *logging
     volumes:
@@ -94,6 +95,7 @@ services:
     ports:
       - 0.0.0.0:8545:8545
       - 0.0.0.0:8003:8003
+      - 0.0.0.0:60002:60002
     <<:
       - *logging
       - *pg_env
@@ -134,7 +136,7 @@ services:
       - bootstrap
     deploy:
       mode: replicated
-      replicas: 10
+      replicas: 2
       resources:
         limits:
           cpus: '1'
@@ -153,7 +155,9 @@ services:
       driver: none
     deploy:
       mode: replicated
-      replicas: 10
+        #replicas: 0 - with this, normal behaviour
+        #replicas: 25 - it worked pretty well
+      replicas: 50
     command:
       - /opt/run_database_hammer.sh
     depends_on:
@@ -170,7 +174,7 @@ services:
       - ./run_waku_store_query_maker.sh:/opt/run_waku_store_query_maker.sh:Z
     environment:
       STORE_QUERIES_PER_SECOND: 1
-      NUM_CONCURRENT_USERS: 1
+      NUM_CONCURRENT_USERS: 25
     depends_on:
       - nwaku-postgres
       - nwaku-sqlite

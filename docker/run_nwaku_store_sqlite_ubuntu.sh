@@ -8,7 +8,6 @@ apt-get install wget -y
 bootstrap_IP=$(dig +short bootstrap)
 
 apt-get install libpq5 -y
-chmod +x /usr/bin/wakunode
 
 RETRIES=${RETRIES:=10}
 
@@ -36,6 +35,7 @@ echo "I am sqlite ubuntu. Listening on: ${IP}"
   --keep-alive=true\
   --log-level=DEBUG\
   --rpc-port=8546\
+  --tcp-port=60001\
   --rpc-address=0.0.0.0\
   --metrics-server=True\
   --metrics-server-port=8004\

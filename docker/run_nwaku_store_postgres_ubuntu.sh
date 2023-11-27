@@ -8,7 +8,6 @@ apt-get install wget -y
 bootstrap_IP=$(dig +short bootstrap)
 
 apt-get install libpq5 -y
-chmod +x /usr/bin/wakunode
 
 RETRIES=${RETRIES:=10}
 
@@ -28,6 +27,7 @@ IP=$(hostname -I)
 
 echo "I am postgres ubuntu. Listening on: ${IP}"
 
+  ##--store-max-num-db-connections=50\
 ./usr/bin/wakunode\
   --relay=true\
   --topic=/waku/2/default-waku/proto\
@@ -36,6 +36,7 @@ echo "I am postgres ubuntu. Listening on: ${IP}"
   --keep-alive=true\
   --log-level=DEBUG\
   --rpc-port=8545\
+  --tcp-port=60002\
   --rpc-address=0.0.0.0\
   --metrics-server=True\
   --metrics-server-port=8003\
