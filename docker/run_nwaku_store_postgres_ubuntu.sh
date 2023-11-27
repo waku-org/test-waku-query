@@ -27,7 +27,6 @@ IP=$(hostname -I)
 
 echo "I am postgres ubuntu. Listening on: ${IP}"
 
-  ##--store-max-num-db-connections=50\
 ./usr/bin/wakunode\
   --relay=true\
   --topic=/waku/2/default-waku/proto\
