@@ -166,7 +166,7 @@ services:
       - simulation
 
   waku-store-query-generator:
-    image: ivansete/waku-store-request-maker:19e645
+    image: ivansete/waku-store-request-maker:1b7c16
     restart: on-failure
     entrypoint: sh
       - 'opt/run_waku_store_query_maker.sh'
