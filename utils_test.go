@@ -10,9 +10,11 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/waku-org/go-waku/logging"
 	"github.com/waku-org/go-waku/waku/v2/node"
-	"github.com/waku-org/go-waku/waku/v2/peers"
+	"github.com/waku-org/go-waku/waku/v2/peerstore"
 	"github.com/waku-org/go-waku/waku/v2/protocol/store"
 	"go.uber.org/zap"
+
+	"google.golang.org/protobuf/proto"
 )
 
 func addNodes(ctx context.Context, node *node.WakuNode) {
@@ -23,7 +25,9 @@ func addNodes(ctx context.Context, node *node.WakuNode) {
 			continue
 		}
 
-		_, err = node.AddPeer(ma, peers.Static, store.StoreID_v20beta4)
+		_ = ma
+
+		_, err = node.AddPeer(ma, peerstore.Static, []string{string(store.StoreID_v20beta4)})
 		if err != nil {
 			log.Error("could not add peer", zap.Error(err), zap.Stringer("addr", ma))
 			continue
@@ -46,11 +50,11 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 	cursorIterations := 0
 
 	result, err := node.Store().Query(ctx, store.Query{
-		Topic:         pubsubTopic,
+		PubsubTopic:   pubsubTopic,
 		ContentTopics: contentTopics,
-		StartTime:     startTime.UnixNano(),
-		EndTime:       endTime.UnixNano(),
-	}, store.WithPeer(info.ID), store.WithPaging(false, 100), store.WithRequestId([]byte{1, 2, 3, 4, 5, 6, 7, 8}))
+		StartTime:     proto.Int64(startTime.UnixNano()),
+		EndTime:       proto.Int64(endTime.UnixNano()),
+	}, store.WithPeer(info.ID), store.WithPaging(false, 3), store.WithRequestID([]byte{1, 2, 3, 4, 5, 6, 7, 8}))
 	if err != nil {
 		return -1, err
 	}
@@ -69,10 +73,14 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 		// uncomment to find message by ID
 		for _, m := range result.GetMessages() {
 			if len(envelopeHash) != 0 && bytes.Equal(m.Hash(pubsubTopic), envelopeHash) {
-				log.Info("MESSAGE FOUND!", logging.HexString("envelopeHash", envelopeHash), logging.HostID("peerID", info.ID))
+				log.Info("MESSAGE FOUND!", logging.HexBytes("envelopeHash", envelopeHash), logging.HostID("peerID", info.ID))
 				return 0, nil
 			}
+
+			fmt.Println("MESSAGE TIMESTAMP: ", m.GetTimestamp(), time.Unix(0, m.GetTimestamp()).UTC())
 		}
+
+		fmt.Println("END PAGE")
 
 		cnt += len(result.GetMessages())
 	}
