@@ -24,6 +24,7 @@ func (s *StoreSuite) SetupSuite() {
 	wakuNode, err := node.New(
 		node.WithNTP(),
 		node.WithWakuRelayAndMinPeers(1),
+		//node.WithClusterID(16),
 	)
 
 	s.NoError(err)
