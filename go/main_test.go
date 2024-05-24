@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"context"
+	"fmt"
+	"strconv"
 	"sync"
 	"time"
-	"strconv"
 
 	"github.com/stretchr/testify/require"
 	"github.com/waku-org/go-waku/waku/v2/protocol/relay"
@@ -22,12 +22,12 @@ var nodeList = []string{
 
 // If using vscode, go to Preferences > Settings, and edit Go: Test Timeout to at least 60s
 
-func parseTime(s string) (time.Time) {
+func parseTime(s string) time.Time {
 	i, err := strconv.ParseInt(s, 10, 64)
-    if err != nil {
-        panic(err)
-    }
-    return time.Unix(i, 0)
+	if err != nil {
+		panic(err)
+	}
+	return time.Unix(i, 0)
 }
 
 func (s *StoreSuite) TestBasic() {
@@ -83,7 +83,7 @@ func (s *StoreSuite) TestCompareDatabasesPerformance() {
 	expectedNumMsgs := 966
 	pubsubTopic := "/waku/2/default-waku/proto"
 	startTime := parseTime("1695992040")
-	endTime :=   parseTime("1695992056")
+	endTime := parseTime("1695992056")
 	contentTopic := "/waku/2/default-content/proto"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // Test shouldnt take more than 60s
@@ -101,7 +101,7 @@ func (s *StoreSuite) TestCompareDatabasesPerformance() {
 	// Store
 	// ================================================================
 
-    timeSpentMap := make(map[string]time.Duration)
+	timeSpentMap := make(map[string]time.Duration)
 	numUsers := int64(10)
 
 	peers := []string{
@@ -138,4 +138,3 @@ func (s *StoreSuite) TestCompareDatabasesPerformance() {
 	fmt.Println("\n\nAverage time spent:", peers[1], time.Duration(timeSpentNanos))
 	fmt.Println("")
 }
-
