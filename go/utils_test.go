@@ -10,9 +10,10 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/waku-org/go-waku/waku/v2/node"
+	"github.com/waku-org/go-waku/waku/v2/protocol/legacy_store"
 	"github.com/waku-org/go-waku/waku/v2/protocol/pb"
-	"github.com/waku-org/go-waku/waku/v2/protocol/store"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
 )
 
 func connectToNodes(ctx context.Context, node *node.WakuNode) {
@@ -42,9 +43,9 @@ func sendMessages(ctx context.Context, node *node.WakuNode, numMsgToSend int, to
 
 		msg := &pb.WakuMessage{
 			Payload:      payload,
-			Version:      0,
+			Version:      proto.Uint32(0),
 			ContentTopic: contentTopic,
-			Timestamp:    node.Timesource().Now().UnixNano(),
+			Timestamp:    proto.Int64(node.Timesource().Now().UnixNano()),
 		}
 
 		_, err = node.Relay().Publish(ctx, msg)
@@ -70,9 +71,9 @@ func sendMessagesConcurrent(ctx context.Context, node *node.WakuNode, numMsgToSe
 
 			msg := &pb.WakuMessage{
 				Payload:      payload,
-				Version:      0,
+				Version:      proto.Uint32(0),
 				ContentTopic: contentTopic,
-				Timestamp:    node.Timesource().Now().UnixNano(),
+				Timestamp:    proto.Int64(node.Timesource().Now().UnixNano()),
 			}
 
 			_, err = node.Relay().Publish(ctx, msg)
@@ -100,12 +101,12 @@ func queryNode(ctx context.Context, node *node.WakuNode, addr string, pubsubTopi
 	cnt := 0
 	cursorIterations := 0
 
-	result, err := node.Store().Query(ctx, store.Query{
-		Topic:         pubsubTopic,
+	result, err := node.LegacyStore().Query(ctx, legacy_store.Query{
+		PubsubTopic:   pubsubTopic,
 		ContentTopics: []string{contentTopic},
-		StartTime:     startTime.UnixNano(),
-		EndTime:       endTime.UnixNano(),
-	}, store.WithPeer(info.ID), store.WithPaging(false, 100), store.WithRequestId([]byte{1, 2, 3, 4, 5, 6, 7, 8}))
+		StartTime:     proto.Int64(startTime.UnixNano()),
+		EndTime:       proto.Int64(endTime.UnixNano()),
+	}, legacy_store.WithPeer(info.ID), legacy_store.WithPaging(false, 100), legacy_store.WithRequestID([]byte{1, 2, 3, 4, 5, 6, 7, 8}))
 	if err != nil {
 		return -1, err
 	}
