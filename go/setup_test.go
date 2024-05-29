@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/waku-org/go-waku/waku/v2/node"
 	"github.com/waku-org/go-waku/waku/v2/utils"
+	"go.uber.org/zap/zapcore"
 )
 
 var log = utils.Logger().Named("TEST")
@@ -23,9 +24,9 @@ type StoreSuite struct {
 func (s *StoreSuite) SetupSuite() {
 	wakuNode, err := node.New(
 		node.WithNTP(),
-		node.WithWakuRelayAndMinPeers(1),
-        node.WithClusterID(16),
-    )
+		node.WithClusterID(16),
+		node.WithLogLevel(zapcore.DebugLevel),
+	)
 
 	s.NoError(err)
 
