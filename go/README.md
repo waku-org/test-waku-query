@@ -15,6 +15,8 @@ make
   --content-topic=/waku/1/0xa0a6b41b/rfc26 \
   --start-time=1717507412000000000 \
   --end-time=1717593812000000000
+  --pagesize=20 \
+  --use-legacy=true
 ```
 
 For the previous execution, you should see among the logs the following:
@@ -38,5 +40,7 @@ docker run querytool:latest \
   --content-topic=/waku/1/0xc95d2429/rfc26 \
   --content-topic=/waku/1/0xa0a6b41b/rfc26 \
   --start-time=1717507412000000000 \
-  --end-time=1717593812000000000
+  --end-time=1717593812000000000 \
+  --pagesize=20 \
+  --use-legacy=true
 ```
