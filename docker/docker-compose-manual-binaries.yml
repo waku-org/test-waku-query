@@ -100,7 +100,7 @@ services:
       - *logging
       - *pg_env
     volumes:
-    # This is expected to be run from metal-01.he-eu-hel1.wakudev.misc.statusim.net
+    # This is expected to be run from metal-01.he-eu-hel1.misc.wakudev.statusim.net
       - /home/shared/nwaku/build/wakunode2:/usr/bin/wakunode:Z
       - ./run_nwaku_store_postgres_ubuntu.sh:/opt/run_nwaku_store_postgres_ubuntu.sh:Z
     entrypoint: bash
@@ -126,7 +126,7 @@ services:
       - *logging
       - *pg_env
     volumes:
-    # This is expected to be run from metal-01.he-eu-hel1.wakudev.misc.statusim.net
+    # This is expected to be run from metal-01.he-eu-hel1.misc.wakudev.statusim.net
       - /home/shared/nwaku/build/wakunode2:/usr/bin/wakunode:Z
       - ./run_nwaku_store_postgres_ubuntu.sh:/opt/run_nwaku_store_postgres_ubuntu.sh:Z
     entrypoint: bash
