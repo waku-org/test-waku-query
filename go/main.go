@@ -155,7 +155,7 @@ func main() {
 }
 
 func Execute(ctx context.Context, opts Options) error {
-	utils.InitLogger(options.LogEncoding, options.LogOutput, "query")
+	utils.InitLogger(options.LogEncoding, options.LogOutput, "query", zapcore.DebugLevel)
 
 	var prvKey *ecdsa.PrivateKey
 	var err error
@@ -187,6 +187,7 @@ func Execute(ctx context.Context, opts Options) error {
 		node.WithLogLevel(lvl),
 		node.WithPrivateKey(prvKey),
 		node.WithClusterID(uint16(options.ClusterID)),
+		node.WithShards([]uint16{32, 64}),
 		node.WithNTP(),
 		node.WithLibP2POptions(libp2pOpts...),
 	)
